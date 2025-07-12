@@ -7,6 +7,10 @@ from sentence_transformers import SentenceTransformer
 
 app = FastAPI()
 
+@app.get("/")
+def read_root():
+    return {"status": "🟢 RAG microservice is running"}
+    
 # Load once on startup
 with open("cleaned_recipes.pkl", "rb") as f:
     recipes = pickle.load(f)
