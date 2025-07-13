@@ -3,17 +3,21 @@ from pydantic import BaseModel
 import faiss
 import pickle
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
 app = FastAPI()
 
 # Load once on startup
-try:
-    with open("cleaned_recipes.pkl", "rb") as f:
-        recipes = pickle.load(f)
+with open("cleaned_recipes.pkl", "rb") as f:
+    recipes = pickle.load(f)
 
-    index = faiss.read_index("recipe_index.faiss")
-    model = SentenceTransformer("all-MiniLM-L6-v2")
-except Exception as e:
-    print("🔥 Failed to start FastAPI app:", e)
-    raise e
+index = faiss.read_index("recipe_index.faiss")
+
+class SearchRequest(BaseModel):
+    embedding: list[float]
+    top_k: int = 5
+
+@app.post("/search")
+def search(req: SearchRequest):
+    query_vector = np.array([req.embedding], dtype=np.float32)
+    _, I = index.search(query_vector, req.top_k)
+    return {"results": [recipes[i] for i in I[0]]}
