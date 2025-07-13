@@ -21,5 +21,6 @@ class SearchRequest(BaseModel):
 @app.post("/search")
 def search(req: SearchRequest):
     query_vector = model.encode([req.query])
+    print(f"query_vector shape: {query_vector.shape}, index.d: {index.d}")
     D, I = index.search(np.array(query_vector).astype("float32"), req.top_k)
     return {"results": [recipes[i] for i in I[0]]}
